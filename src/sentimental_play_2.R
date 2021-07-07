@@ -38,12 +38,12 @@ ui <- bootstrapPage(
 server <- function(input, output) {
   ts <- function(bkg, sz, num) {
     #### Paste your functions below
-    consumer_key <- "kM2ovH4HAywQNm0urZ3JhiSAN"
-    consumer_secret <-
-      "8y7yecosygXFJbIk6iKSel9IqrDNpycbZcrKTwLx90icnwdUeK"
-    access_token <-
-      "738365281773359109-kt0VjlZpGaau7XoZu7nkk7hRl32wf3F"
-    access_secret <- "dhSDsmP9AGx8aEXO7bCrSAx08VUPQRux4WFrg9q0AFVSD"
+    readRenviron("./.Renviron")
+    
+    consumer_key <- Sys.getenv("twitter_consumer_key")
+    consumer_secret <- Sys.getenv("twitter_consumer_secret")
+    access_token <- Sys.getenv("twitter_access_token")
+    access_secret <- Sys.getenv("twitter_access_secret")
     
     # Connect to twitter
     options(httr_oauth_cache = T)
