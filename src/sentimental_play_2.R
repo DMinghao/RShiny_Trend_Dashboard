@@ -4,14 +4,15 @@ library(wordcloud2)
 library(tidyverse)
 library(rvest)
 library(SnowballC)
-library(twitteR) #To get tweets from twitter
+library(twitteR)
 library(syuzhet)
 
 n <- 1.5
 
 ui <- bootstrapPage(
-  titlePanel("Real Time Sentiment Analysis: Mail Marketing & Phone Marketing"),
+  titlePanel("Twitter Sentiment Analysis"),
   sidebarPanel(
+    textAreaInput("keywords", "Keywords (seperated by ',')"),
     sliderInput(
       "num",
       "Number of Tweets to Capture",
@@ -35,11 +36,9 @@ ui <- bootstrapPage(
 
 
 
-server <- function(input, output) {
-  ts <- function(bkg, sz, num) {
-    #### Paste your functions below
+server <- function(input, output, session) {
+  ts <- function(bkg, sz, num, kws) {
     readRenviron("./.Renviron")
-    
     consumer_key <- Sys.getenv("twitter_consumer_key")
     consumer_secret <- Sys.getenv("twitter_consumer_secret")
     access_token <- Sys.getenv("twitter_access_token")
@@ -52,8 +51,10 @@ server <- function(input, output) {
                         access_token,
                         access_secret)
     
-    hashtag = c("junkmail", "crankcall")
-    numwords = num
+    # hashtag = kws
+    # numwords = num
+    hashtag = c("trump","biden")
+    numwords = 500
     # Save the query on a dataframe named rt_subset
     rt_subset = searchTwitter(hashtag, n = numwords, lang = "en") %>%
       strip_retweets %>% twListToDF
@@ -79,17 +80,7 @@ server <- function(input, output) {
     frequency = round(sqrt(d$freq), 0)
     
     ### Let's come back and edit the raw tweets
-    myWords = c("can",
-                "just",
-                "one",
-                "think",
-                "like",
-                "get",
-                "see",
-                "will",
-                "'",
-                "yes,",
-                "trump")
+    myWords = c()
     v <- rt_subset$text %>%
       VectorSource %>%
       Corpus %>%
@@ -156,7 +147,8 @@ server <- function(input, output) {
   
   ##### Paste your functions above
   output$wordcloud2 <- renderWordcloud2({
-    ts(input$background, input$size, input$num)
+    kws <- strsplit(input$keywords, ',')[[1]]
+    ts(input$background, input$size, input$num, kws)
   })
 }
 
