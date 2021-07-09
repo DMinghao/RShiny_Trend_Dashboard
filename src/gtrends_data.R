@@ -1,18 +1,34 @@
-if(!require(needs))
-  install.packages("needs")
-library(needs)
+if(!require(gtrendsR)) {
+  install.packages("gtrendsR")
+}
+library(gtrendsR)
 
-needs(gtrendsR, tidyverse)
+if(!require(tidyverse)) {
+  install.packages("tidyverse")
+}
+library(tidyverse)
 
-keywords <- c("trump", "biden")
+getGoogleTrendData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sys.Date()) {
+  if (length(keyword) > 1 | fromDate >= toDate) {
+    return(NULL)
+  }
+  
+  
+  gtrends(
+    keyword = keyword,
+    geo = "US",
+    time = paste(fromDate, toDate, sep = " "),
+    gprop = c("web", "news", "images", "froogle", "youtube"),
+    category = 0,
+    hl = "en-US",
+    low_search_volume = FALSE,
+    cookie_url = "http://trends.google.com/Cookies/NID",
+    tz = 0,
+    onlyInterest = FALSE
+  )
+}
 
-nWords <- length(keywords)
 
-data <- gtrends(keywords)
+data <- getGoogleTrendData("trump")
+
 glimpse(data$interest_over_time)
-glimpse(data$interest_by_country)
-glimpse(data$interest_by_region)
-glimpse(data$interest_by_dma)
-glimpse(data$interest_by_city)
-glimpse(data$related_topics)
-glimpse(data$related_queries)

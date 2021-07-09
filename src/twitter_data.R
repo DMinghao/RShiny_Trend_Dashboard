@@ -1,8 +1,19 @@
-if(!require(needs))
-  install.packages("needs")
-library(needs)
+if(!require(twitteR)){
+  install.packages("twitteR")
+}
 
-needs(twitteR, tidyverse, tm, syuzhet)
+if(!require(tm)){
+  install.packages("tm")
+}
+
+if(!require(syuzhet)){
+  install.packages("syuzhet")
+}
+
+library(twitteR)
+library(tm)
+library(syuzhet)
+
 
 readRenviron("./.Renviron")
 consumer_key <- Sys.getenv("twitter_consumer_key")
@@ -11,17 +22,27 @@ access_token <- Sys.getenv("twitter_access_token")
 access_secret <- Sys.getenv("twitter_access_secret")
 
 # Connect to twitter
-options(httr_oauth_cache = T)
 setup_twitter_oauth(consumer_key,
                     consumer_secret,
                     access_token,
                     access_secret)
 
-hashtag = c("trump", "biden")
+hashtag = "trump"
 numwords = 500
 # Save the query on a dataframe named rt_subset
-rt_subset = searchTwitter(hashtag, n = numwords, lang = "en") %>%
-  strip_retweets %>% twListToDF
+rt_subset = searchTwitter(
+  hashtag,
+  n = numwords,
+  lang = "en",
+  since = NULL,
+  until = NULL,
+  locale = NULL,
+  geocode = NULL,
+  sinceID = NULL,
+  maxID = NULL,
+  resultType = NULL,
+  retryOnRateLimit = 120
+) %>% strip_retweets %>% twListToDF
 
 # Find the frequency of each word and store it on dataframe d
 v <- rt_subset$text %>%
@@ -35,7 +56,6 @@ d <- data.frame(word = names(v),
                 freq = v,
                 stringsAsFactors = FALSE)
 
-head(d, 20)
 
 ###Visualize dataframe d with wordcloud package
 minFreq = 10
