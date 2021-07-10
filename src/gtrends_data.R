@@ -1,14 +1,42 @@
 if(!require(gtrendsR)) {
   install.packages("gtrendsR")
 }
-library(gtrendsR)
 
-if(!require(tidyverse)) {
+if (!require(tidyverse)) {
   install.packages("tidyverse")
 }
-library(tidyverse)
 
-getGoogleTrendData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sys.Date()) {
+if (!require(ggplot2)) {
+  install.packages("ggplot2")
+}
+
+if (!require(plotly)) {
+  install.packages("plotly")
+}
+
+if (!require(maps)) {
+  install.packages("maps")
+}
+
+if (!require(mapdeck)) {
+  install.packages("mapdeck")
+}
+
+if (!require(geojsonsf)) {
+  install.packages("geojsonsf")
+}
+
+library(gtrendsR)
+library(tidyverse)
+library(ggplot2)
+library(plotly)
+library(maps)
+library(mapdeck)
+library(geojsonsf)
+
+getGoogleTrendData <- function(keyword,
+                               fromDate = Sys.Date() - 365,
+                               toDate = Sys.Date()) {
   if (length(keyword) > 1 | fromDate >= toDate) {
     return(NULL)
   }
@@ -32,3 +60,49 @@ getGoogleTrendData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sy
 data <- getGoogleTrendData("trump")
 
 glimpse(data$interest_over_time)
+glimpse(data$interest_by_country)
+glimpse(data$interest_by_region)
+glimpse(data$interest_by_dma)
+glimpse(data$interest_by_city)
+glimpse(data$related_topics)
+glimpse(data$related_queries)
+
+p <- ggplot(data$interest_over_time) +
+  geom_line(aes(x = date, y = hits))
+
+p %>%
+  ggplotly()
+
+state <- map_data("state")
+
+data$interest_by_region %>%
+  mutate(region = tolower(location)) %>%
+  filter(region %in% state$region) %>%
+  select(region, hits) -> my_df
+
+ggplot(my_df) +
+  geom_map(data = state,
+           map = state,
+           aes(x = long, y = lat, map_id = region))+
+  geom_map(data = my_df,
+           map = state,
+           aes(fill = hits, map_id = region))
+
+readRenviron("./.Renviron")
+mapbox_token <- Sys.getenv("mapbox_token")
+set_token(mapbox_token)
+
+sf <- geojson_sf(
+  "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
+)
+
+sf %>% 
+  merge(data$interest_by_region %>% select(c(location, hits)), by.x = 'name', by.y = 'location')
+
+mapdeck(style = mapdeck_style('dark')) %>%
+  add_polygon(data = sf,
+              layer = "polygon_layer", 
+              elevation = "hits")
+
+mapdeck(style = mapdeck_style('dark'), pitch = 45) %>%
+  add_polygon(data = sf, polyline = "geometry", layer = "region", elevation = "hits")

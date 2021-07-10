@@ -15,6 +15,31 @@ access_token <- Sys.getenv("twitter_access_token")
 access_secret <- Sys.getenv("twitter_access_secret")
 # Connect to twitter
 setup_twitter_oauth(consumer_key,consumer_secret,access_token,access_secret)
+
+# Function
+getTwitterData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sys.Date(), n = 500) {
+  if (length(keyword) > 1 | fromDate >= toDate) {
+    return(NULL)
+  }
+  searchTwitter(
+    keyword,
+    n = n,
+    lang = "en",
+    since = fromDate,
+    until = toDate,
+    locale = NULL,
+    geocode = NULL,
+    sinceID = NULL,
+    maxID = NULL,
+    resultType = NULL,
+    retryOnRateLimit = 120
+  )%>% strip_retweets %>% twListToDF()
+}
+
+data <- getTwitterData("trump")
+
+glimpse(data)
+
 # Keywords
 data <- searchTwitter ('trump', n=500)
 d <-data %>% strip_retweets %>% twListToDF()
@@ -30,27 +55,3 @@ dtm <-DocumentTermMatrix(mycorpus,control = list(weighting = function(x) weightT
 inspect(dtm)
 dtm$dimnames
 as.matrix(dtm$dimnames)
-# Function
-getTwitterData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sys.Date()) {
-  if (length(keyword) > 1 | fromDate >= toDate) {
-    return(NULL)
-  }
-  searchTwitter(
-    keyword,
-    n = 500,
-    lang = "en",
-    since = NULL,
-    until = NULL,
-    locale = NULL,
-    geocode = NULL,
-    sinceID = NULL,
-    maxID = NULL,
-    resultType = NULL,
-    retryOnRateLimit = 120
-  )%>% strip_retweets %>% twListToDF()
-}
-
-data <- getTwitterData("trump")
-
-glimpse(data)
-

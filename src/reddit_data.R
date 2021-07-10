@@ -24,6 +24,23 @@ data <- getRedditData("trump")
 
 glimpse(data)
 
-data %>% 
+newData <- data %>% 
   select(c(id, comment_score, controversiality, comment, title)) %>% 
-  glimpse()
+  arrange(comment_score)
+
+newData %>% glimpse()
+
+data %>% 
+  filter(structure == 1)
+
+v <- newData$comment %>%
+  VectorSource %>%
+  Corpus %>%
+  TermDocumentMatrix %>%
+  as.matrix %>%
+  rowSums  %>%
+  sort(decreasing = TRUE)
+d <- data.frame(word = names(v),
+                freq = v,
+                stringsAsFactors = FALSE)
+glimpse(d)
