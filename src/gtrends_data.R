@@ -33,6 +33,7 @@ library(plotly)
 library(maps)
 library(mapdeck)
 library(geojsonsf)
+library(sf)
 
 getGoogleTrendData <- function(keyword,
                                fromDate = Sys.Date() - 365,
@@ -92,17 +93,31 @@ readRenviron("./.Renviron")
 mapbox_token <- Sys.getenv("mapbox_token")
 set_token(mapbox_token)
 
-sf <- geojson_sf(
-  "https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json"
-)
+sf <- geojson_sf("./www/us-states.json")
 
-sf %>% 
-  merge(data$interest_by_region %>% select(c(location, hits)), by.x = 'name', by.y = 'location')
+new_sf <- sf %>%
+  merge(
+    data$interest_by_region %>% select(c(location, hits)),
+    by.x = 'name',
+    by.y = 'location',
+    all = TRUE
+  ) %>%
+  select(-c(density)) %>%
+  mutate(hits_scale = hits * 10) %>%
+  mutate(info = paste("<b>", name, " - ", hits, "</b><br>")) %>%
+  st_as_sf()
 
-mapdeck(style = mapdeck_style('dark')) %>%
-  add_polygon(data = sf,
-              layer = "polygon_layer", 
-              elevation = "hits")
 
-mapdeck(style = mapdeck_style('dark'), pitch = 45) %>%
-  add_polygon(data = sf, polyline = "geometry", layer = "region", elevation = "hits")
+mapdeck(
+  style = mapdeck_style('dark'),
+  pitch = 45
+) %>%
+  add_polygon(
+    data = new_sf,
+    fill_colour = "hits",
+    elevation_scale = 1000,
+    elevation = "hits_scale",
+    tooltip = "info",
+    legend = TRUE,
+    legend_format = list(fill_colour = as.integer)
+  )
