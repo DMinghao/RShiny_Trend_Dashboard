@@ -22,6 +22,7 @@ library(textdata)
 library(RTextTools)
 library(ggplot2)
 library(ggridges)
+library(wordcloud2)
 
 getRedditData <- function(keyword,
                           subreddit = NA,
@@ -73,6 +74,16 @@ copyData <- copyData %>%
 summary(copyData)
 glimpse(copyData)
 
+data("stop_words")
+textData <- copyData %>%
+  select(c(uniqueID, comment, title, post_text)) %>%
+  unite(allText, -1) %>%
+  mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
+  mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
+  mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
+
+
+
 
 
 
@@ -83,10 +94,11 @@ copyData %>%
   unique() -> uniqueThreads
 
 userNetPlot <- copyData %>%
-  filter(title == uniqueThreads[1,]) %>%
+  filter(title == uniqueThreads[1, ]) %>%
   user_network(agg = TRUE)
 
 # userNetPlot$plot
+
 
 
 
@@ -131,13 +143,6 @@ fig
 
 ### Text mining tf, idf
 
-data("stop_words")
-textData <- copyData %>%
-  select(c(uniqueID, comment, title, post_text)) %>%
-  unite(allText, -1) %>%
-  mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
-  mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
-  mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
 
 textData %>%
   unnest_tokens(input = allText, output = word) %>%
@@ -193,6 +198,9 @@ tfidfFig
 
 
 
+
+
+
 ### sentiment
 ###
 
@@ -224,27 +232,57 @@ p <- sentimentData %>%
 
 p
 
+averageSentiment <- sentimentData %>%
+  group_by(sentiment) %>%
+  tally() %>%
+  mutate(n = n / nrow(copyData))
+
+allSent <- sentimentData %>% distinct(sentiment)
+
+id <- 1000
+
 sentimentData %>%
   group_by(uniqueID, sentiment) %>%
   tally() %>%
-  # group_by(uniqueID) %>% filter(n == max(n)) %>%
-  
+  filter(uniqueID == id) %>%
+  right_join(allSent) %>%
+  mutate(uniqueID = id) %>%
+  mutate(n = coalesce(n, 0)) -> radarData
+
+radarData %>%
   plot_ly(type = 'scatterpolar',
-          theta = ~ sentiment,
-          r = ~ n)
+          mode = 'markers',
+          fill = 'toself') %>%
+  add_trace(
+    theta = ~ sentiment,
+    r = ~ averageSentiment$n,
+    name = 'Average Sentiment',
+    hovertemplate = ~ paste(
+      "Sentiment: ",
+      sentiment,
+      "<br>n: ",
+      averageSentiment$n,
+      '<extra></extra>'
+    )
+  ) %>%
+  add_trace(
+    theta = ~ sentiment,
+    r = ~ n,
+    name = ~ paste("Comment ID: ", uniqueID),
+    hovertemplate = ~ paste("Sentiment: ", sentiment, "<br>n: ", n, '<extra></extra>')
+  ) %>%
+  layout(polar = list(radialaxis = list(visible = T)))
 
 
 
 
-newData <- copyData %>%
-  select(c(id, comment_score, controversiality, comment, title)) %>%
-  arrange(comment_score)
 
-newData %>% glimpse()
+### word count 
+### 
 
 excludeWords <- c("just", "like", "get", "think")
 
-v <- newData$comment %>%
+v <- textData$allText %>%
   VectorSource %>%
   Corpus %>%
   tm_map(content_transformer(tolower)) %>%
@@ -269,3 +307,7 @@ d <- data.frame(word = names(v),
                 freq = v,
                 stringsAsFactors = FALSE)
 glimpse(d)
+
+d %>% 
+  wordcloud2()
+
