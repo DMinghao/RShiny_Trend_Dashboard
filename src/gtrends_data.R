@@ -32,3 +32,4 @@ getGoogleTrendData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sy
 data <- getGoogleTrendData("trump")
 
 glimpse(data$interest_over_time)
+
