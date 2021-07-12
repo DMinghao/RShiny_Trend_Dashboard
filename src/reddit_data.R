@@ -46,7 +46,7 @@ getRedditData <- function(keyword,
   )
 }
 
-keyword <- "trump"
+keyword <- "biden"
 
 data <- getRedditData(keyword)
 
@@ -94,7 +94,7 @@ copyData %>%
   unique() -> uniqueThreads
 
 userNetPlot <- copyData %>%
-  filter(title == uniqueThreads[1, ]) %>%
+  filter(title == uniqueThreads[1,]) %>%
   user_network(agg = TRUE)
 
 # userNetPlot$plot
@@ -232,6 +232,20 @@ p <- sentimentData %>%
 
 p
 
+violinP <- sentimentData %>%
+  group_by(uniqueID, sentiment) %>%
+  tally() %>%
+  ungroup() %>%
+  plot_ly(
+    y = ~ n,
+    x = ~ sentiment,
+    split = ~ sentiment,
+    type = 'violin',
+    box = list(visible = T),
+    meanline = list(visible = T)
+  )
+violinP
+
 averageSentiment <- sentimentData %>%
   group_by(sentiment) %>%
   tally() %>%
@@ -277,10 +291,10 @@ radarData %>%
 
 
 
-### word count 
-### 
+### word count
+###
 
-excludeWords <- c("just", "like", "get", "think")
+excludeWords <- c("just", "get")
 
 v <- textData$allText %>%
   VectorSource %>%
@@ -308,6 +322,5 @@ d <- data.frame(word = names(v),
                 stringsAsFactors = FALSE)
 glimpse(d)
 
-d %>% 
+d %>%
   wordcloud2()
-
