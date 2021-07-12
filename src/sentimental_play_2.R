@@ -53,7 +53,7 @@ server <- function(input, output, session) {
     
     # hashtag = kws
     # numwords = num
-    hashtag = c("trump","biden")
+    hashtag = c("trump")
     numwords = 500
     # Save the query on a dataframe named rt_subset
     rt_subset = searchTwitter(hashtag, n = numwords, lang = "en") %>%
