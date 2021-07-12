@@ -7,6 +7,8 @@ if(!require(httpuv)){install.packages("httpuv")}
 library(tidyverse)
 if(!require(tm)){install.packages("tm")}
 library(tm)
+if(!require(plotly)){install.packages("plotly")}
+library(plotly)
 
 readRenviron("./.Renviron")
 consumer_key <- Sys.getenv("twitter_consumer_key")
@@ -16,7 +18,7 @@ access_secret <- Sys.getenv("twitter_access_secret")
 # Connect to twitter
 setup_twitter_oauth(consumer_key,consumer_secret,access_token,access_secret)
 # Keywords
-data <- searchTwitter ('snh48', n=10000)
+data <- searchTwitter ('SNH48', n=10000)
 d <-data %>% strip_retweets %>% twListToDF()
 # tdm/dtm
 df <- data.frame(V1 = d, stringsAsFactors = FALSE)
@@ -32,19 +34,31 @@ getTwitterData <- function(keyword, fromDate = Sys.Date() - 365, toDate = Sys.Da
   if (length(keyword) > 1 | fromDate >= toDate) {
     return(NULL)
   }
-  searchTwitter(
-    keyword,
-    n = 500,
-    lang = "en",
-    since = NULL,
-    until = NULL,
-    locale = NULL,
-    geocode = NULL,
-    sinceID = NULL,
-    maxID = NULL,
-    resultType = NULL,
-    retryOnRateLimit = 120
-  )%>% strip_retweets %>% twListToDF()
+  length <- toDate - fromDate 
+  twetPerDay <- 1000
+  
+  outputDF <- data_frame()
+  
+  for(i in 1:length){
+    currDate <- fromDate + i
+    outputDF <<- outputDF %>% rbind(
+      searchTwitter(
+        keyword,
+        n = twetPerDay,
+        lang = "en",
+        since = currDate %>% format("%Y-%m-%d"),
+        until = currDate %>% format("%Y-%m-%d"),
+        locale = NULL,
+        geocode = NULL,
+        sinceID = NULL,
+        maxID = NULL,
+        resultType = NULL,
+        retryOnRateLimit = 120
+      )%>% strip_retweets %>% twListToDF()
+    )
+  }
+  
+  outputDF
 }
 
 data <- getTwitterData("snh48")
@@ -58,6 +72,8 @@ colors=c('red','blue','green','yellow','purple')
 rankingtwitter <-d%>%
   select(c(1,3))
 rkt<-rankingtwitter %>% arrange(desc(favoriteCount))
+rkt <- rkt %>% mutate(text = gsub('http\\S+\\s*', "", text))
+
 wordcloud2(rkt, size = 2 ,shape = 'star')
 wordcloud2(rkt, size = 2, minRotation = -pi/2, maxRotation = -pi/2)
 wordcloud2(rkt, size = 2, 
@@ -71,9 +87,9 @@ d$week = week(d$created)
 d$hour = hour(d$created)
 d$month = month(d$created)
 
-d.date1 = subset(x = d,date == '2021-07-11')
-d.week1 = subset(x = d,week == '27')
-d.month1 = subset(x = d, month == '7')
+# d.date1 = subset(x = d,date == '2021-07-11')
+# d.week1 = subset(x = d,week == '27')
+# d.month1 = subset(x = d, month == '7')
 d.day.week1 = data.frame(table(d$date))
 colnames(d.day.week1)[1] <- "Days"
 colnames(d.day.week1)[2] <- "Total.Tweets"
@@ -83,7 +99,7 @@ colnames(d.week.month1)[2] <- "Total.Tweets"
 d.hour.date1 = data.frame(table(d$hour))
 colnames(d.hour.date1) = c('Hour','Total.Tweets')
 
-ggplot(d.hour.date1)+
+p <- ggplot(d.hour.date1)+
   geom_bar(aes(x = Hour,
                y = Total.Tweets,
                fill = I('blue')),
@@ -108,8 +124,10 @@ ggplot(d.hour.date1)+
   ylab('Total Tweets')+
   scale_fill_brewer(palette = 'Dark2')+
   theme_bw()
+p %>% ggplotly()
+
 ## week
-ggplot(d.day.week1)+
+t<-ggplot(d.day.week1)+
   geom_bar(aes(x = Days,
                y = Total.Tweets,
                fill = I('blue')),
@@ -134,8 +152,9 @@ ggplot(d.day.week1)+
   ylab('Total Tweets')+
   scale_fill_brewer(palette = 'Dark2')+
   theme_bw()
+t %>% ggplotly()
 ## Month
-ggplot(d.week.month1)+
+o <-ggplot(d.week.month1)+
   geom_bar(aes(x = Weeks,
                y = Total.Tweets,
                fill = I('blue')),
@@ -160,18 +179,20 @@ ggplot(d.week.month1)+
   ylab('Total Tweets')+
   scale_fill_brewer(palette = 'Dark2')+
   theme_bw()
+o%>%ggplotly()
 ## per day
-d.date2 = subset(x = d,date == '2021-07-10')
+d.date2 = subset(x = d,date == '2021-07-11')
 
 d.hour.date2 = data.frame(table(d$hour))
 colnames(d.hour.date2) = c('Hour','Total.Tweets')
 d.hour.date3 = rbind(d.hour.date1,d.hour.date2)
-d.hour.date3$Date = c(rep(x = '2021-07-10',
+d.hour.date3$Date = c(rep(x = '2021-07-11',
                              len = nrow(d.hour.date1)),
-                         rep(x = '2021-07-11',
+                         rep(x = '2021-07-12',
                              len = nrow(d.hour.date2)))
-d.hour.date3$Labels = c(letters,'A','B','C','D','E','F','G','H','I','G','K','L','M','N','O','P','Q','R'
-                        ,'S','T','U','V')
+# d.hour.date3$Labels = c(letters, 'A','B','C','D','E','F','G','H','I','G','K','L','M','N','O','P','Q','R'
+#                         ,'S','T','U','V')
+d.hour.date3$Labels = c('A','B')
 d.hour.date3$Hour = as.character(d.hour.date3$Hour)
 d.hour.date3$Hour = as.numeric(d.hour.date3$Hour)
 
@@ -306,3 +327,4 @@ ggplot(nrc_words) +
        x = "Tweet Date",
        y = "Sentiment") + 
   scale_fill_discrete(guide=FALSE)
+
