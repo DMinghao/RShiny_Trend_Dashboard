@@ -22,6 +22,7 @@ library(textdata)
 library(RTextTools)
 library(ggplot2)
 library(ggridges)
+library(ggjoy)
 library(wordcloud2)
 
 getRedditData <- function(keyword,
