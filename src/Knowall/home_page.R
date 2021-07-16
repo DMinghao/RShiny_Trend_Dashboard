@@ -1,0 +1,1 @@
+home_page <- div(h1("Home page"))

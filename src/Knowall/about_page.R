@@ -1,0 +1,1 @@
+about_page <- div(h1("About page"))
