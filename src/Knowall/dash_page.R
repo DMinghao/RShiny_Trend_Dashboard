@@ -1,3 +1,4 @@
 dash_page <- div(h1("Dashboard page"), 
-                 textOutput("keywordState")
+                   switchInput("demoMode", label = "DEMO", value = TRUE),
+                 textOutput("keywordState"), 
                  )

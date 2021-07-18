@@ -1,9 +1,13 @@
 if (!require(bslib)){
     install.packages("bslib")
 }
+if (!require(shinyWidgets)){
+    install.packages("shinyWidgets")
+}
 
 library(shiny)
 library(bslib)
+library(shinyWidgets)
 
 source("init_router.R")
 
