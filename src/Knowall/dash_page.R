@@ -21,13 +21,43 @@ dash_page <- div(
       options = list(maxItems = 2)
     )
   ),
-  actionButton("go", "Go"), 
-  textOutput("keywordState"), 
-  div(id = "outputDiv", 
-      tabsetPanel(
-        tabPanel("Google Trends"), 
-        tabPanel("Twitter"), 
-        tabPanel("Reddit")
-      )
-      )
+  actionButton("go", "Go"),
+  textOutput("keywordState"),
+  div(id = "outputDiv",
+      navlistPanel(
+        "Output",
+        tabPanel("Google", div(
+          tabsetPanel(
+            tabPanel("Result", 
+                     div(
+                       plotlyOutput("gtrendTimeHit"), 
+                     mapdeckOutput("gtrendMapdeck")
+                     )
+                     ), 
+            tabPanel("Data", 
+                     # dataTableOutput("gtrendDT"),
+                     dataTableOutput("gtrendDTinterest_by_country"),
+                     dataTableOutput("gtrendDTinterest_by_region"),
+                     dataTableOutput("gtrendDTinterest_by_dma"),
+                     dataTableOutput("gtrendDTinterest_by_city"),
+                     dataTableOutput("gtrendDTrelated_topics"),
+                     dataTableOutput("gtrendDTrelated_queries")
+                     )
+          )
+          )),
+        tabPanel("Twitter", div(
+          tabsetPanel(
+            tabPanel("Result", 
+                     plotlyOutput("twitter")), 
+            tabPanel("Data")
+          )
+        )),
+        tabPanel("Reddit", div(
+          tabsetPanel(
+            tabPanel("Result", 
+                     plotlyOutput("reddit")), 
+            tabPanel("Data")
+          )
+        ))
+      ))
 )

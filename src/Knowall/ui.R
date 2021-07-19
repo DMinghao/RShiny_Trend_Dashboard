@@ -4,6 +4,9 @@ if (!require(bslib)){
 if (!require(shinyWidgets)){
     install.packages("shinyWidgets")
 }
+if (!require(plotly)){
+    install.packages("plotly")
+}
 
 library(shiny)
 library(bslib)
