@@ -6,7 +6,7 @@ home_page <- div(class = "container",
                    fluidRow(
                    box(
                    title = "Introduction", solidHeader = TRUE,
-                   status = "success", width = 12, collapsible = TRUE, 
+                   class = "gray-500", width = 12, collapsible = TRUE, 
                    column(12, 
                           tags$div(
                             tags$span(

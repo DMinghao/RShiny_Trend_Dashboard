@@ -8,6 +8,18 @@ if (!require(plotly)){
     install.packages("plotly")
 }
 
+if (!require(mapdeck)){
+    install.packages("mapdeck")
+}
+if (!require(wordcloud2)){
+    install.packages("wordcloud2")
+}
+if (!require(shinyjs)){
+    install.packages("shinyjs")
+}
+library(shinyjs)
+library(wordcloud2)
+library(mapdeck)
 library(shiny)
 library(bslib)
 library(shinyWidgets)
