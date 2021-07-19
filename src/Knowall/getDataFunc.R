@@ -20,7 +20,7 @@ access_secret <- Sys.getenv("twitter_access_secret")
 mapbox_token <- Sys.getenv("mapbox_token")
 set_token(mapbox_token)
 # Connect to twitter
-setup_twitter_oauth(consumer_key,consumer_secret,access_token,access_secret)
+setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
 
 getGoogleTrendData <- function(keyword,
@@ -74,7 +74,8 @@ getRedditData <- function(keyword,
 
 getTwitterData <- function(keyword,
                            fromDate = Sys.Date() - 365,
-                           toDate = Sys.Date(), n = 2000) {
+                           toDate = Sys.Date(),
+                           n = 2000) {
   if (length(keyword) > 1 | fromDate >= toDate) {
     return(NULL)
   }
@@ -96,3 +97,20 @@ getTwitterData <- function(keyword,
   outputDF
 }
 
+
+saveDemoData <- function(keyword) {
+  reddit <- getRedditData(keyword)
+  google <- getGoogleTrendData(keyword)
+  twitter <- getTwitterData(keyword, n = 10000)
+  
+  save(reddit,
+       google,
+       twitter,
+       file = paste("./demo_data/", keyword, ".RData", sep = ""))
+}
+
+# saveDemoData("Data Visualization")
+# saveDemoData("Trump")
+# saveDemoData("Biden")
+# saveDemoData("Data Science")
+# saveDemoData("Computer Science")

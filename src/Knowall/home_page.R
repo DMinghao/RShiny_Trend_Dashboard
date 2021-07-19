@@ -1,10 +1,10 @@
 library(shinydashboard)
 
-home_page <- div(
+home_page <- div(class = "container",
   tags$div(class = "card text-center",
                           tags$div(class = "card-body",
                                   
-                 body <- dashboardBody(
+                 body <- div(
                    fluidRow(
                    box(
                    title = "Introduction", solidHeader = TRUE,

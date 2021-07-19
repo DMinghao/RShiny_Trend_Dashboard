@@ -1,4 +1,4 @@
-about_page <- div(
+about_page <- div(class = "container",
   h4("Johns Hopkins University"),
   h5("Course: Data Visualization By Instructor Mohammad Ali Alamdar Yazdi"),
           

@@ -21,6 +21,5 @@ shinyUI(bootstrapPage(
     title = "Knowall Search",
     theme = bs_theme(version = 4), 
     navbar,
-    tags$div(class = "container",
-              router$ui)
+    router$ui
 ))

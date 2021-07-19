@@ -70,8 +70,15 @@ shinyServer(function(input, output, session) {
   
   updateKeywordText <- function() {
     if (input$demoMode == TRUE) {
-      global$keywordProvided = input$keywordSelect
-      # print(input$keywordSelect)
+      global$keywordProvided = input$keywordSelect 
+      if(length(global$keywordProvided) == 1){
+        print(input$keywordSelect)
+        # source(load)
+        load(paste("./www/demo_data/", global$keywordProvided[1], ".RData", sep = "")) 
+        global$GoogleData <- google
+        global$TwitterData1 <- twitter
+        global$RedditData1 <- reddit
+      }
     } else {
       temp = str_split(input$keywords, ',', n = 2)[[1]]
       # print(temp)
@@ -88,7 +95,12 @@ shinyServer(function(input, output, session) {
   
   getGoogle <- function() {
     if (input$demoMode == TRUE) {
-      
+      if (length(global$keywordProvided) == 2) {
+        
+      }
+      if (length(global$keywordProvided) == 1){
+        
+      }
     } else {
       if (length(global$keywordProvided) == 2 &&
           !("" %in% global$keywordProvided)) {
@@ -99,15 +111,18 @@ shinyServer(function(input, output, session) {
         kw <- global$keywordProvided[1]
         print("getting data")
         global$GoogleData <- getGoogleTrendData(kw)
-        # global$TwitterData1 <- getTwitterData(kw)
-        # global$RedditData1 <- getRedditData(kw)
       }
     }
   }
   
   getTwitter <- function() {
     if (input$demoMode == TRUE) {
-      
+      if (length(global$keywordProvided) == 2) {
+        
+      }
+      if (length(global$keywordProvided) == 1){
+        
+      }
     } else {
       if (length(global$keywordProvided) == 2 &&
           !("" %in% global$keywordProvided)) {
@@ -117,16 +132,19 @@ shinyServer(function(input, output, session) {
           !("" %in% global$keywordProvided)) {
         kw <- global$keywordProvided[1]
         print("getting data")
-        # global$GoogleData <- getGoogleTrendData(kw)
         global$TwitterData1 <- getTwitterData(kw)
-        # global$RedditData1 <- getRedditData(kw)
       }
     }
   }
   
   getReddit <- function() {
     if (input$demoMode == TRUE) {
-      
+      if (length(global$keywordProvided) == 2) {
+        
+      }
+      if (length(global$keywordProvided) == 1){
+        
+      }
     } else {
       if (length(global$keywordProvided) == 2 &&
           !("" %in% global$keywordProvided)) {
@@ -136,9 +154,7 @@ shinyServer(function(input, output, session) {
           !("" %in% global$keywordProvided)) {
         kw <- global$keywordProvided[1]
         print("getting data")
-        # global$GoogleData <- getGoogleTrendData(kw)
-        # global$TwitterData1 <- getTwitterData(kw)
-        global$RedditData1 <- getRedditData(kw, sort_by = "new")
+        global$RedditData1 <- getRedditData(kw)
       }
     }
   }
@@ -509,4 +525,70 @@ shinyServer(function(input, output, session) {
     fig
   })
   
+  output$reddit3D2 <- renderPlotly({
+    copyData <- global$RedditData1
+    
+    data("stop_words")
+    textData <- copyData %>%
+      select(c(uniqueID, comment, title, post_text)) %>%
+      unite(allText, -1) %>%
+      mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
+    
+    textData %>%
+      unnest_tokens(input = allText, output = word) %>%
+      anti_join(stop_words) -> cleanStemmedText
+    
+    cleanStemmedText %>%
+      count(word) %>%
+      arrange(desc(n))
+    
+    cleanStemmedText %>%
+      group_by(uniqueID) %>%
+      count(word) %>%
+      ungroup() -> countTbl
+    
+    tfidfTbl <- countTbl %>%
+      bind_tf_idf(word, document = uniqueID , n)
+    
+    tfidfTbl <- tfidfTbl %>%
+      merge(copyData %>% select(c(uniqueID, upvote_prop)), all = TRUE) %>%
+      as_tibble()
+    
+    tfidfFig <- tfidfTbl %>%
+      filter(n > 2) %>%
+      plot_ly(
+        x = ~ tf,
+        y = ~ idf,
+        z = ~ tf_idf,
+        color = ~ upvote_prop,
+        hovertemplate = ~ paste(
+          "<br>uniqueID: ",
+          uniqueID,
+          "<br>tf: ",
+          tf,
+          "<br>idf: ",
+          idf,
+          "<br>tf_idf: ",
+          tf_idf,
+          "<br>n: ",
+          n,
+          "<br>upvote_prop: ",
+          upvote_prop,
+          "<br>word: ",
+          word,
+          '<extra></extra>'
+        )
+      ) %>%
+      add_markers() %>%
+      layout(scene = list(camera = list(eye = list(
+        x = -2, y = 0.88, z = 1
+      ))))
+    tfidfFig
+  })
+  
+  output$redditDT <- renderDataTable({
+    global$RedditData1 %>% select(-c(post_text))
+  })
 })
