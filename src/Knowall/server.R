@@ -7,11 +7,15 @@ if (!require(stringr)) {
 if (!require(DT)) {
   install.packages("DT")
 }
+if (!require(shinydashboardPlus)) {
+  install.packages("shinydashboardPlus")
+}
 library(shiny)
 library(stringr)
 library(DT)
 library(ggjoy)
 library(shinyjs)
+library(shinydashboardPlus)
 
 source("getDataFunc.R")
 
@@ -74,7 +78,7 @@ shinyServer(function(input, output, session) {
       if(length(global$keywordProvided) == 1){
         print(input$keywordSelect)
         # source(load)
-        load(paste("./www/demo_data/", global$keywordProvided[1], ".RData", sep = "")) 
+        load(paste("./demo_data/", global$keywordProvided[1], ".RData", sep = "")) 
         global$GoogleData <- google
         global$TwitterData1 <- twitter
         global$RedditData1 <- reddit
