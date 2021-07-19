@@ -58,7 +58,7 @@ getGoogleTrendData <- function(keyword,
 }
 
 
-data <- getGoogleTrendData("trump")
+data <- getGoogleTrendData("data science")
 
 glimpse(data$interest_over_time)
 

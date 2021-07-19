@@ -13,6 +13,11 @@ if (!require(RTextTools)) {
 if (!require(ggridges)) {
   install.packages("ggridges")
 }
+if (!require(dplyr)) {
+  install.packages("dplyr")
+}
+install.packages("plyr")           # Install & load plyr
+library(plyr)
 library(RedditExtractoR)
 library(plotly)
 library(tidyverse)
@@ -24,6 +29,7 @@ library(ggplot2)
 library(ggridges)
 library(ggjoy)
 library(wordcloud2)
+library(dplyr)
 
 getRedditData <- function(keyword,
                           subreddit = NA,
@@ -47,7 +53,7 @@ getRedditData <- function(keyword,
   )
 }
 
-keyword <- "biden"
+keyword <- "data science"
 
 data <- getRedditData(keyword)
 
