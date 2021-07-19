@@ -10,12 +10,16 @@ if (!require(DT)) {
 if (!require(shinydashboardPlus)) {
   install.packages("shinydashboardPlus")
 }
+if (!require(shinycssloaders)) {
+  install.packages("shinycssloaders")
+}
 library(shiny)
 library(stringr)
 library(DT)
 library(ggjoy)
 library(shinyjs)
 library(shinydashboardPlus)
+library(shinycssloaders)
 
 source("getDataFunc.R")
 
@@ -590,6 +594,193 @@ shinyServer(function(input, output, session) {
         x = -2, y = 0.88, z = 1
       ))))
     tfidfFig
+  })
+  
+  output$redditSentimentJoy <- renderPlot({
+    copyData <- global$RedditData1
+    
+    data("stop_words")
+    textData <- copyData %>%
+      select(c(uniqueID, comment, title, post_text)) %>%
+      unite(allText, -1) %>%
+      mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
+    
+    textData %>%
+      unnest_tokens(input = allText, output = word) %>%
+      anti_join(stop_words) -> cleanStemmedText
+    
+    sentimentData <- copyData %>%
+      select(c(uniqueID, post_date, comm_date)) %>%
+      merge(cleanStemmedText, all = TRUE) %>%
+      inner_join(get_sentiments("nrc"), by = "word") %>%
+      as_tibble()
+    
+    sentimentData %>%
+      group_by(sentiment) %>%
+      tally() %>%
+      arrange(desc(n))
+    
+    sentimentData %>% group_by(comm_date) %>% count()
+    
+    p <- sentimentData %>%
+      ggplot() +
+      geom_joy(
+        aes(x = comm_date, y = sentiment, fill = sentiment),
+        rel_min_height = 0.01,
+        alpha = 0.7,
+        scale = 3
+      ) +
+      theme_joy() +
+      scale_fill_discrete(guide = FALSE)
+    
+    p
+  })
+  
+  output$redditSentimentViolin <- renderPlotly({
+    copyData <- global$RedditData1
+    
+    data("stop_words")
+    textData <- copyData %>%
+      select(c(uniqueID, comment, title, post_text)) %>%
+      unite(allText, -1) %>%
+      mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
+    
+    textData %>%
+      unnest_tokens(input = allText, output = word) %>%
+      anti_join(stop_words) -> cleanStemmedText
+    
+    sentimentData <- copyData %>%
+      select(c(uniqueID, post_date, comm_date)) %>%
+      merge(cleanStemmedText, all = TRUE) %>%
+      inner_join(get_sentiments("nrc"), by = "word") %>%
+      as_tibble()
+    
+    violinP <- sentimentData %>%
+      group_by(uniqueID, sentiment) %>%
+      tally() %>%
+      ungroup() %>%
+      plot_ly(
+        y = ~ n,
+        x = ~ sentiment,
+        split = ~ sentiment,
+        type = 'violin',
+        box = list(visible = T),
+        meanline = list(visible = T)
+      )
+    violinP
+  })
+  
+  output$redditSentimentRadar <- renderPlotly({
+    
+    copyData <- global$RedditData1
+    
+    data("stop_words")
+    textData <- copyData %>%
+      select(c(uniqueID, comment, title, post_text)) %>%
+      unite(allText, -1) %>%
+      mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
+    
+    textData %>%
+      unnest_tokens(input = allText, output = word) %>%
+      anti_join(stop_words) -> cleanStemmedText
+    
+    sentimentData <- copyData %>%
+      select(c(uniqueID, post_date, comm_date)) %>%
+      merge(cleanStemmedText, all = TRUE) %>%
+      inner_join(get_sentiments("nrc"), by = "word") %>%
+      as_tibble()
+    
+    averageSentiment <- sentimentData %>%
+      group_by(sentiment) %>%
+      tally() %>%
+      mutate(n = n / nrow(copyData))
+    
+    allSent <- sentimentData %>% distinct(sentiment)
+    
+    id <- 1000
+    
+    sentimentData %>%
+      group_by(uniqueID, sentiment) %>%
+      tally() %>%
+      filter(uniqueID == id) %>%
+      right_join(allSent) %>%
+      mutate(uniqueID = id) %>%
+      mutate(n = coalesce(n, 0)) -> radarData
+    
+    radarData %>%
+      plot_ly(type = 'scatterpolar',
+              mode = 'markers',
+              fill = 'toself') %>%
+      add_trace(
+        theta = ~ sentiment,
+        r = ~ averageSentiment$n,
+        name = 'Average Sentiment',
+        hovertemplate = ~ paste(
+          "Sentiment: ",
+          sentiment,
+          "<br>n: ",
+          averageSentiment$n,
+          '<extra></extra>'
+        )
+      ) %>%
+      add_trace(
+        theta = ~ sentiment,
+        r = ~ n,
+        name = ~ paste("Comment ID: ", uniqueID),
+        hovertemplate = ~ paste("Sentiment: ", sentiment, "<br>n: ", n, '<extra></extra>')
+      ) %>%
+      layout(polar = list(radialaxis = list(visible = T)))
+  })
+  
+  output$redditWordCloud <- renderWordcloud2({
+    
+    copyData <- global$RedditData1
+    
+    data("stop_words")
+    textData <- copyData %>%
+      select(c(uniqueID, comment, title, post_text)) %>%
+      unite(allText, -1) %>%
+      mutate(allText = gsub(allText, pattern = "http\\S+\\s*", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "<.*?>", replacement = "")) %>%
+      mutate(allText = gsub(allText, pattern = "[0-9]+|[[:punct:]]|\\(.*\\)", replacement = ""))
+    
+    excludeWords <- c("just", "get")
+    
+    v <- textData$allText %>%
+      VectorSource %>%
+      Corpus %>%
+      tm_map(content_transformer(tolower)) %>%
+      # Remove numbers
+      tm_map(removeNumbers) %>%
+      # Remove english common stopwords
+      tm_map(removeWords, stopwords("english")) %>%
+      # Remove your own stop word
+      # specify your stopwords as a character vector
+      tm_map(removeWords, excludeWords) %>%
+      # Remove punctuations
+      tm_map(removePunctuation) %>%
+      # Eliminate extra white spaces
+      tm_map(stripWhitespace) %>%
+      # Text stemming
+      tm_map(stemDocument) %>%
+      TermDocumentMatrix %>%
+      as.matrix %>%
+      rowSums  %>%
+      sort(decreasing = TRUE)
+    d <- data.frame(word = names(v),
+                    freq = v,
+                    stringsAsFactors = FALSE)
+    # glimpse(d)
+    
+    d %>%
+      wordcloud2()
+    
   })
   
   output$redditDT <- renderDataTable({

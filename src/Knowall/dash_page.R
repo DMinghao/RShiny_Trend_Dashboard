@@ -1,8 +1,8 @@
 googleLayout <- div(tabsetPanel(
   tabPanel(
     "Result",
-    plotlyOutput("gtrendTimeHit"),
-    mapdeckOutput("gtrendMapdeck")
+    plotlyOutput("gtrendTimeHit") %>% withSpinner(size = 1.5),
+    mapdeckOutput("gtrendMapdeck") %>% withSpinner(size = 1.5)
   ),
   tabPanel(
     "Data",
@@ -26,11 +26,11 @@ googleLayout <- div(tabsetPanel(
 twitterLayout <- div(tabsetPanel(
   tabPanel(
     "Result",
-    wordcloud2Output("twitterWC1"),
-    plotlyOutput("twitterHourPost"),
-    plotlyOutput("twitterWeekPost"),
-    plotlyOutput("twitterMonthPost"),
-    plotOutput("twitterSentiment")
+    wordcloud2Output("twitterWC1") %>% withSpinner(size = 1.5),
+    plotlyOutput("twitterHourPost") %>% withSpinner(size = 1.5),
+    plotlyOutput("twitterWeekPost") %>% withSpinner(size = 1.5),
+    plotlyOutput("twitterMonthPost") %>% withSpinner(size = 1.5),
+    plotOutput("twitterSentiment") %>% withSpinner(size = 1.5)
   ),
   tabPanel("Data",
            dataTableOutput("twitterDT"))
@@ -39,29 +39,31 @@ twitterLayout <- div(tabsetPanel(
 redditLayout <- div(tabsetPanel(
   tabPanel(
     "Result",
-    plotlyOutput("reddit3D1"),
-    plotlyOutput("reddit3D2")
+    plotlyOutput("reddit3D1") %>% withSpinner(size = 1.5),
+    plotlyOutput("reddit3D2") %>% withSpinner(size = 1.5), 
+    plotOutput("redditSentimentJoy") %>% withSpinner(size = 1.5), 
+    plotlyOutput("redditSentimentViolin") %>% withSpinner(size = 1.5), 
+    plotlyOutput("redditSentimentRadar") %>% withSpinner(size = 1.5), 
+    wordcloud2Output("redditWordCloud") %>% withSpinner(size = 1.5)
   ),
   tabPanel("Data",
            dataTableOutput("redditDT"))
 ))
 
 
-dash_page <- div(
-  
-  # actionButton("resetKeyword", "Reset", show = FALSE),
+dash_page <- div(# actionButton("resetKeyword", "Reset", show = FALSE),
   # textOutput("keywordState"),
   
   # conditionalPanel(condition = "global.keywordSet = TRUE", div())
-  
-  div(id = "outputDiv", 
-      dashboardPage( skin = "black", 
-      dashboardHeader(title = "Dashboard page"
-                      
-                      ),
-      dashboardSidebar(
-        sidebarMenu(
-          switchInput("demoMode", label = "DEMO", value = TRUE), 
+
+    dashboardPage(
+      skin = "black",
+      dashboardHeader(title = "Dashboard page"),
+      dashboardSidebar(sidebarMenu(
+        menuItem(
+          "Config",
+          
+          switchInput("demoMode", label = "DEMO", value = TRUE),
           conditionalPanel(
             condition = "input.demoMode == false",
             textInput(
@@ -85,30 +87,28 @@ dash_page <- div(
                 "Trump",
                 "Biden"
               ),
-              selected = NULL,
+              selected = "Data Visualization",
               multiple = TRUE,
               # options = list(maxItems = 2)
               options = list(maxItems = 1)
             )
           ),
-          actionButton("setKeyword", "Set Keyword"), 
-          menuItem("Google", tabName = "google"), 
-          menuItem("Twitter", tabName = "twitter"), 
-          menuItem("Reddit", tabName = "reddit")
-        )
-      ),
-      dashboardBody(
-        tabItems(
-          tabItem(tabName = "google", googleLayout), 
-          tabItem(tabName = "twitter", twitterLayout), 
-          tabItem(tabName = "reddit", redditLayout)
-        )
+          actionButton("setKeyword", "Set Keyword")
+        ),
+        menuItem("Google", tabName = "google"),
+        menuItem("Twitter", tabName = "twitter"),
+        menuItem("Reddit", tabName = "reddit")
+      )),
+      dashboardBody(tabItems(
+        tabItem(tabName = "google", googleLayout),
+        tabItem(tabName = "twitter", twitterLayout),
+        tabItem(tabName = "reddit", redditLayout)
       ))
-      # navlistPanel(
-      #   "Output",
-      #   tabPanel("Google", googleLayout),
-      #   tabPanel("Twitter", twitterLayout),
-      #   tabPanel("Reddit", redditLayout)
-      # )
-      )
-)
+    )
+    # navlistPanel(
+    #   "Output",
+    #   tabPanel("Google", googleLayout),
+    #   tabPanel("Twitter", twitterLayout),
+    #   tabPanel("Reddit", redditLayout)
+    # )
+  )
