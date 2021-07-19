@@ -1,6 +1,53 @@
+googleLayout <- div(
+  tabsetPanel(
+    tabPanel("Result",
+             plotlyOutput("gtrendTimeHit"),
+             mapdeckOutput("gtrendMapdeck")),
+    tabPanel(
+      "Data",
+      selectInput(
+        "gtrendDataSelect",
+        choices = c(
+          "interest_over_time", 
+          "interest_by_country",
+          "interest_by_region",
+          "interest_by_dma",
+          "interest_by_city",
+          "related_topics",
+          "related_queries"
+        ), 
+        label = "Select a data frame"
+      ), 
+      dataTableOutput("gtrendDT")
+    )
+  ))
+
+twitterLayout <- div(
+  tabsetPanel(
+    tabPanel("Result", 
+             wordcloud2Output("twitterWC1"), 
+             plotlyOutput("twitterHourPost"), 
+             plotlyOutput("twitterWeekPost"), 
+             plotlyOutput("twitterMonthPost"), 
+             plotOutput("twitterSentiment")
+    ),
+    tabPanel("Data", 
+             dataTableOutput("twitterDT"))
+  ))
+
+redditLayout <- div(
+  tabsetPanel(
+    tabPanel("Result",
+             plotlyOutput("reddit3D1"),
+             plotlyOutput("reddit3D2")
+             ),
+    tabPanel("Data")
+  ))
+
+
 dash_page <- div(
   h1("Dashboard page"),
-  switchInput("demoMode", label = "DEMO", value = TRUE),
+  switchInput("demoMode", label = "DEMO", value = FALSE),
   conditionalPanel(
     condition = "input.demoMode == false",
     textInput(
@@ -21,43 +68,17 @@ dash_page <- div(
       options = list(maxItems = 2)
     )
   ),
-  actionButton("go", "Go"),
-  textOutput("keywordState"),
+  actionButton("setKeyword", "Set Keyword"),
+  # actionButton("resetKeyword", "Reset", show = FALSE),
+  # textOutput("keywordState"),
+  
+  # conditionalPanel(condition = "global.keywordSet = TRUE", div())
+  
   div(id = "outputDiv",
       navlistPanel(
         "Output",
-        tabPanel("Google", div(
-          tabsetPanel(
-            tabPanel("Result", 
-                     div(
-                       plotlyOutput("gtrendTimeHit"), 
-                     mapdeckOutput("gtrendMapdeck")
-                     )
-                     ), 
-            tabPanel("Data", 
-                     # dataTableOutput("gtrendDT"),
-                     dataTableOutput("gtrendDTinterest_by_country"),
-                     dataTableOutput("gtrendDTinterest_by_region"),
-                     dataTableOutput("gtrendDTinterest_by_dma"),
-                     dataTableOutput("gtrendDTinterest_by_city"),
-                     dataTableOutput("gtrendDTrelated_topics"),
-                     dataTableOutput("gtrendDTrelated_queries")
-                     )
-          )
-          )),
-        tabPanel("Twitter", div(
-          tabsetPanel(
-            tabPanel("Result", 
-                     plotlyOutput("twitter")), 
-            tabPanel("Data")
-          )
-        )),
-        tabPanel("Reddit", div(
-          tabsetPanel(
-            tabPanel("Result", 
-                     plotlyOutput("reddit")), 
-            tabPanel("Data")
-          )
-        ))
+        tabPanel("Google", googleLayout),
+        tabPanel("Twitter", twitterLayout),
+        tabPanel("Reddit", redditLayout)
       ))
 )

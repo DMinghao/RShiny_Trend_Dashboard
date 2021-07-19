@@ -1,3 +1,5 @@
+library(shinydashboard)
+
 home_page <- div(
   tags$div(class = "card text-center",
                           tags$div(class = "card-body",

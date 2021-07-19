@@ -64,7 +64,12 @@ getRedditData <- function(keyword,
     cn_threshold = 0,
     page_threshold = page_threshold,
     sort_by = sort_by
-  )
+  ) %>%
+    mutate(post_date = as.Date(post_date, "%d-%m-%y")) %>%
+    mutate(comm_date = as.Date(comm_date, "%d-%m-%y")) %>%
+    mutate(subreddit = as.factor(subreddit)) %>%
+    mutate(uniqueID = row_number()) %>%
+    as_tibble()
 }
 
 getTwitterData <- function(keyword,
