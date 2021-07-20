@@ -73,7 +73,8 @@ shinyServer(function(input, output, session) {
   
   preProcessData <- function() {
     copyData <- global$RedditData1
-    # lexicon_nrc(dir = "./dataCache", manual_download = TRUE)
+    # lexicon_nrc(dir = "./dataCache")
+    nrc <- lexicon_nrc(dir = "./dataCache", manual_download = TRUE)
     data("stop_words")
     redditProcessed$textData <- copyData %>%
       select(c(uniqueID, comment, title, post_text)) %>%
@@ -89,7 +90,8 @@ shinyServer(function(input, output, session) {
     redditProcessed$sentimentData <- copyData %>%
       select(c(uniqueID, post_date, comm_date)) %>%
       merge(redditProcessed$cleanStemmedText, all = TRUE) %>%
-      inner_join(get_sentiments("nrc"), by = "word") %>%
+      # inner_join(get_sentiments("nrc"), by = "word") %>%
+      inner_join(nrc, by = "word") %>%
       as_tibble()
   }
   
@@ -411,7 +413,7 @@ shinyServer(function(input, output, session) {
           anti_join(all_stop_words, by = "word")
         
         nrc_words <- no_stop_words %>%
-          inner_join(get_sentiments("nrc"), by = "word")
+          inner_join(lexicon_nrc(dir = "./dataCache", manual_download = TRUE), by = "word")
         
         ggplot(nrc_words) +
           geom_joy(
@@ -434,7 +436,7 @@ shinyServer(function(input, output, session) {
         global$TwitterData1
       })
       
-      ### reddit
+  ### reddit
       
       # output$reddit3d1 <- renderPlotly({
       #   # plots$reddit3d1

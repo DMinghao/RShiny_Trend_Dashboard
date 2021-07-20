@@ -1,14 +1,13 @@
 name: Knowall
-title:
+title: Knowall
 username:
 account: dminghao
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 4402516
-bundleId: 4837369
+appId: 4403606
+bundleId: 4837645
 url: https://dminghao.shinyapps.io/Knowall/
-when: 1626778352.08418
-lastSyncTime: 1626778352.08418
+when: 1626785471.76778
+lastSyncTime: 1626785471.76778
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: dataCache

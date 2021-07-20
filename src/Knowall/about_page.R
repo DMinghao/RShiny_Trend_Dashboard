@@ -29,23 +29,23 @@ about_page <- div(class = "container",
                                            "Github")))),
            tags$div(class = "card-body",
                     tags$p(class = "card-text",
-                           "Han Liu —— Master of Information System Management",
+                           "Han Liu -- Master of Information System Management",
                            a(href = "lh971016@gmail.com","lh971016@gmail.com")
                            ),
                     tags$p(class = "card-text",
-                           "Minghao Du —— Master of Information System Management",
+                           "Minghao Du -- Master of Information System Management",
                            a(href = "minghaodu96@gmail.com","minghaodu96@gmail.com")
                            ),
                     tags$p(class = "card-text",
-                           "Mengying Zhao —— Master of Information System Management",
+                           "Mengying Zhao -- Master of Information System Management",
                            a(href = "mailto:zymm48@gmail.com","zymm48@gmail.com")
                     ),
                     tags$p(class = "card-text",
-                           "Wenlu Chen —— Master of Information System Management",
+                           "Wenlu Chen -- Master of Information System Management",
                            a(href = "Wenlu3412@gmail.com","Wenlu3412@gmail.com")
                     ),
                     tags$p(class = "card-text",
-                           "Yanlin Li —— Master of Information System Management",
+                           "Yanlin Li -- Master of Information System Management",
                            a(href = "l3pphadct@gmail.com","l3pphadct@gmail.com")
                     )
                    ),

@@ -26,7 +26,7 @@ home_page <- div(class = "container",
                                    "Reddit",style = "font-size:16px"),style = "font-size:16px"),
                         
                             br(),
-                            tags$span("In order to learn how people interacted with hot issues or breaking news. With our webpage, whoever is interested in user’s searching pattern can easily get what he need by simply typing down the keywords, such as the keyword's trendiness throughout different times and locations, identifying the most popular keyword among a set of words as well as user’s sentiment analysis towards the keywords, etc. 
+                            tags$span("In order to learn how people interacted with hot issues or breaking news. With our webpage, whoever is interested in user's searching pattern can easily get what he need by simply typing down the keywords, such as the keyword's trendiness throughout different times and locations, identifying the most popular keyword among a set of words as well as user's sentiment analysis towards the keywords, etc. 
 "),
                           
      )))))),
@@ -115,7 +115,7 @@ home_page <- div(class = "container",
                                  tags$div(class = "embed-responsive embed-responsive-16by9",
                                           tags$iframe(width = "1353",
                                                       height = "627",
-                                                      src = "https://www.youtube.com/embed/Ci7YV1g6E2o",
+                                                      src = "https://www.youtube.com/embed/TsVq9gevHPc",
                                                       title = "YouTube video player",
                                                       frameborder = "0",
                                                       allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
