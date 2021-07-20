@@ -1,6 +1,7 @@
 navbar <-
   tags$nav(
-    class = "navbar navbar-expand-lg navbar-dark bg-dark fixed-top",
+    # class = "navbar navbar-expand-lg navbar-dark bg-dark fixed-top",
+    class = "navbar navbar-expand-lg navbar-dark bg-dark",
     tags$a(class = "navbar-brand  mb-0 h1",
            href = route_link("/"),
            "KNOWALL"),
