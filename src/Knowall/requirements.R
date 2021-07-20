@@ -105,3 +105,6 @@ if (!require(lubridate)) {
 # library(shinyjs)
 # library(shinydashboardPlus)
 # library(shinycssloaders)
+
+# Sys.setlocale("LC_CTYPE", "en_US.UTF-8")
+# Sys.setlocale("LC_ALL", "English")

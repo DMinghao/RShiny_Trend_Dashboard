@@ -72,11 +72,19 @@ googleLayout <- div(tabsetPanel(
 twitterLayout <- div(tabsetPanel(
   tabPanel(
     "Result", icon = icon("fas fa-poll-h"), 
+    p("Below is the example of the word cloud, it presents the tweets related to three existing keywords that are selected defaultly. You could change and enter any other keywords that you are interested in and use the visualizations for further analysis. "), 
+    p("In the first word cloud, the larger the font, the more 'likes' the tweet has.The specific tweets are illustrated in the table below. It is sorted by the 'number of likes' to rank in order, and the higher the ranking, the higher the 'number of likes' for the tweet."),
     wordcloud2Output("twitterWC1") %>% withSpinner(size = 1.5),
+    br(), 
+    p("The following histogram shows the number of tweets related to the entered keywords. We provide three options with three graphs for people, which represent the number of tweets per hour within a day, the number of tweets per day within a week, and the number of tweets per week within a month respectively. It helps people to clearly observe the specific number of tweets, and locate the time when the highest tweet volume is generated. The horizontal black line indicates the average of the tweets."), 
+    p("NOTICE*:If only part of the content is displayed, it means that the amount of single-day or single-week tweets related to the keyword is beyond the scope of the API, indicating that the keyword has been discussed in a very large amount recently."), 
     plotlyOutput("twitterHourPost") %>% withSpinner(size = 1.5),
+    br(), 
     plotlyOutput("twitterWeekPost") %>% withSpinner(size = 1.5),
+    br(), 
     # plotlyOutput("twitterMonthPost") %>% withSpinner(size = 1.5),
-    plotOutput("twitterSentiment") %>% withSpinner(size = 1.5)
+    p("This is the sentiment analysis graph of twitter The arc represents the degree of emotion. Through the time on the horizontal axis, you can observe the emotion involved in the keyword in the time dimension."), 
+    plotOutput("twitterSentiment") %>% withSpinner(size = 1.5) 
   ),
   tabPanel("Data", icon = icon("fas fa-database"), 
            dataTableOutput("twitterDT"))
@@ -85,10 +93,14 @@ twitterLayout <- div(tabsetPanel(
 redditLayout <- div(tabsetPanel(
   tabPanel(
     "Result", icon = icon("fas fa-poll-h"), 
-    plotlyOutput("reddit3D1") %>% withSpinner(size = 1.5),
+    # plotlyOutput("reddit3D1") %>% withSpinner(size = 1.5),
+    p("In information retrieval, tf-idf is a numerical statistic that is intended to reflect how important a word is to a document in a collection. It is often used as a weighting factor in searches of information retrieval, text mining, and user modeling. The tf-idf value increases proportionally to the number of times a word appears in the document and is offset by the number of documents in the corpus, which helps to adjust for the fact that some words appear more frequently in general."), 
     plotlyOutput("reddit3D2") %>% withSpinner(size = 1.5),
+    br(), 
+    p("The first sentiment analysis is shown above. This plot can tell you how users feel when they comment on something. In different years. According to this plot, we can trace back to the particular time to find out the topic that causes the violent emotional fluctuation. In the plot, the more precipitous the curve is and the higher the peak is, the serverer the emotion fluctuates."), 
     plotOutput("redditSentimentJoy") %>% withSpinner(size = 1.5),
-    plotlyOutput("redditSentimentViolin") %>% withSpinner(size = 1.5),
+    br(), 
+    # plotlyOutput("redditSentimentViolin") %>% withSpinner(size = 1.5),
     plotlyOutput("redditSentimentRadar") %>% withSpinner(size = 1.5),
     wordcloud2Output("redditWordCloud") %>% withSpinner(size = 1.5)
   ),

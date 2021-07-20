@@ -29,8 +29,7 @@ shinyServer(function(input, output, session) {
       text = paste(
         "Please wait...",
         "We are collecting and processing data",
-        sep = "
-        "
+        sep = " | "
       )
     )
     global$displayKeyword <-  updateKeywordText()
@@ -74,6 +73,7 @@ shinyServer(function(input, output, session) {
   
   preProcessData <- function() {
     copyData <- global$RedditData1
+    # lexicon_nrc(dir = "./dataCache", manual_download = TRUE)
     data("stop_words")
     redditProcessed$textData <- copyData %>%
       select(c(uniqueID, comment, title, post_text)) %>%
@@ -368,68 +368,6 @@ shinyServer(function(input, output, session) {
              t %>% ggplotly()
     })
       
-      # output$twitterMonthPost <- renderPlotly({
-      #   d <- global$TwitterData1
-      #
-      #   d$created = ymd_hms(d$created, tz = 'Asia/Jakarta')
-      #   d$date = date(d$created)
-      #   d$week = week(d$created)
-      #   d$hour = hour(d$created)
-      #   d$month = month(d$created)
-      #
-      #   # d.day.week1 = data.frame(table(d$date))
-      #   # colnames(d.day.week1)[1] <- "Days"
-      #   # colnames(d.day.week1)[2] <- "Total.Tweets"
-      #   d.week.month1 = data.frame(table(d$week))
-      #   colnames(d.week.month1)[1] <- "Weeks"
-      #   colnames(d.week.month1)[2] <- "Total.Tweets"
-      #   # d.hour.date1 = data.frame(table(d$hour))
-      #   # colnames(d.hour.date1) = c('Hour', 'Total.Tweets')
-      #
-      #   glimpse(d.week.month1)
-      #
-      #   o <- ggplot(d.week.month1) +
-      #     geom_bar(
-      #       aes(
-      #         x = Weeks,
-      #         y = Total.Tweets,
-      #         fill = I('blue')
-      #       ),
-      #       stat = 'identity',
-      #       alpha = 0.75,
-      #       show.legend = FALSE
-      #     )
-      #     # geom_hline(
-      #     #   yintercept = mean(d.week.month1$Total.Tweets),
-      #     #   col = I('black'),
-      #     #   size = 1
-      #     # ) +
-      #     # geom_text(
-      #     #   aes(
-      #     #     fontface = 'italic',
-      #     #     label = paste('Average:',
-      #     #                   ceiling(mean(
-      #     #                     d.week.month1$Total.Tweets
-      #     #                   )),
-      #     #                   'Tweets per Week'),
-      #     #     x = 8,
-      #     #     y = mean(d.week.month1$Total.Tweets) + 20
-      #     #   ),
-      #     #   hjust = 'left',
-      #     #   size = 4
-      #     # ) +
-      #     # labs(title = 'Total Tweets per Week '
-      #     #      # subtitle = 'Month 2021',
-      #     #      # caption = 'Twitter Crawling 10 - 11 July 2021'
-      #     #      ) +
-      #     # xlab('Week of Month') +
-      #     # ylab('Total Tweets') +
-      #     # scale_fill_brewer(palette = 'Dark2') +
-      #     # theme_bw()
-      #
-      #   o %>% ggplotly()
-      # })
-      
       output$twitterSentiment <- renderPlot({
         data <- global$TwitterData1
         
@@ -498,42 +436,43 @@ shinyServer(function(input, output, session) {
       
       ### reddit
       
-      output$reddit3d1 <- renderPlotly({
-        # plots$reddit3d1
-        req(global$RedditData1)
-        copyData <- global$RedditData1
-        # glimpse(copyData)
-        fig <- copyData %>%
-          # filter(controversiality > 0) %>%
-          plot_ly(
-            x = ~ post_score,
-            y = ~ num_comments,
-            z = ~ comment_score,
-            color = ~ upvote_prop,
-            hovertemplate = ~ paste(
-              "<br>post_score: ",
-              post_score,
-              "<br>num_comments: ",
-              num_comments,
-              "<br>comment_score: ",
-              comment_score,
-              "<br>upvote_prop: ",
-              upvote_prop,
-              "<br>controversiality: ",
-              controversiality,
-              "<br>---Comment---<br>",
-              comment,
-              '<extra></extra>'
-            )
-          ) %>% add_markers() %>%
-          layout(scene = list(
-            camera = list(eye = list(
-              x = 3, y = 0.88, z = 0.64
-            )),
-            aspectratio = list(x = 1, y = 1, z = 1.75)
-          ))
-        fig
-      })
+      # output$reddit3d1 <- renderPlotly({
+      #   # plots$reddit3d1
+      #   # get(global$RedditData1)
+      #   copyData <- global$RedditData1
+      #   # glimpse(copyData)
+      #   fig <- copyData %>%
+      #     # filter(controversiality > 0) %>%
+      #     plot_ly(
+      #       x = ~ post_score,
+      #       y = ~ num_comments,
+      #       z = ~ comment_score,
+      #       color = ~ upvote_prop,
+      #       hovertemplate = ~ paste(
+      #         "<br>post_score: ",
+      #         post_score,
+      #         "<br>num_comments: ",
+      #         num_comments,
+      #         "<br>comment_score: ",
+      #         comment_score,
+      #         "<br>upvote_prop: ",
+      #         upvote_prop,
+      #         "<br>controversiality: ",
+      #         controversiality,
+      #         "<br>---Comment---<br>",
+      #         comment,
+      #         '<extra></extra>'
+      #       )
+      #     ) %>% add_markers() 
+      #   # %>%
+      #     # layout(scene = list(
+      #     #   camera = list(eye = list(
+      #     #     x = 3, y = 0.88, z = 0.64
+      #     #   )),
+      #     #   aspectratio = list(x = 1, y = 1, z = 1.75)
+      #     # ))
+      #   fig
+      # })
       
       output$reddit3D2 <- renderPlotly({
         copyData <- global$RedditData1
@@ -596,23 +535,23 @@ shinyServer(function(input, output, session) {
         p
       })
       
-      output$redditSentimentViolin <- renderPlotly({
-        # req(global$RedditData1)
-        
-        violinP <- redditProcessed$sentimentData %>%
-          group_by(uniqueID, sentiment) %>%
-          tally() %>%
-          ungroup() %>%
-          plot_ly(
-            y = ~ n,
-            x = ~ sentiment,
-            split = ~ sentiment,
-            type = 'violin',
-            box = list(visible = T),
-            meanline = list(visible = T)
-          )
-        violinP
-      })
+      # output$redditSentimentViolin <- renderPlotly({
+      #   # req(global$RedditData1)
+      #   
+      #   violinP <- redditProcessed$sentimentData %>%
+      #     group_by(uniqueID, sentiment) %>%
+      #     tally() %>%
+      #     ungroup() %>%
+      #     plot_ly(
+      #       y = ~ n,
+      #       x = ~ sentiment,
+      #       split = ~ sentiment,
+      #       type = 'violin',
+      #       box = list(visible = T),
+      #       meanline = list(visible = T)
+      #     )
+      #   violinP
+      # })
       
       output$redditSentimentRadar <- renderPlotly({
         copyData <- global$RedditData1
