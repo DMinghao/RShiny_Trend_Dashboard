@@ -1,17 +1,3 @@
-if(!require(twitteR)) {
-  install.packages("twitteR")
-}
-if (!require(gtrendsR)) {
-  install.packages("gtrendsR")
-}
-if (!require(RedditExtractoR)) {
-  install.packages("RedditExtractoR")
-}
-if (!require(mapdeck)) {
-  install.packages("mapdeck")
-}
-
-
 readRenviron("./.Renviron")
 consumer_key <- Sys.getenv("twitter_consumer_key")
 consumer_secret <- Sys.getenv("twitter_consumer_secret")
