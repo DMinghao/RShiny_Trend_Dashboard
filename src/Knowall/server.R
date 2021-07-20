@@ -603,7 +603,10 @@ shinyServer(function(input, output, session) {
       
       output$redditWordCloud <- renderWordcloud2({
         excludeWords <- c("just", "get")
-        
+         redditProcessed$textData$allText <- iconv( x = redditProcessed$textData$allText
+                                                      , from = "UTF-8"
+                                                      , to = "UTF-8"
+                                                      , sub = "" )
         v <- redditProcessed$textData$allText %>%
           VectorSource %>%
           Corpus %>%

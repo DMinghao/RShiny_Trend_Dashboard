@@ -94,7 +94,7 @@ redditLayout <- div(tabsetPanel(
   tabPanel(
     "Result", icon = icon("fas fa-poll-h"), 
     # plotlyOutput("reddit3D1") %>% withSpinner(size = 1.5),
-    p("In information retrieval, tf-idf is a numerical statistic that is intended to reflect how important a word is to a document in a collection. It is often used as a weighting factor in searches of information retrieval, text mining, and user modeling. The tf-idf value increases proportionally to the number of times a word appears in the document and is offset by the number of documents in the corpus, which helps to adjust for the fact that some words appear more frequently in general."), 
+    p("In information retrieval, tf-idf is a numerical statistic that is intended to reflect how important a word is to a document in a collection. It is often used as a weighting factor in searches of information retrieval, text mining, and user modeling. The tf-idf value increases proportionally to the number of times a word appears in the document and is offset by the number of documents in the corpus, which helps to adjust for the fact that some words appear more frequently in general. (wikipidia,2021)"), 
     plotlyOutput("reddit3D2") %>% withSpinner(size = 1.5),
     br(), 
     p("The first sentiment analysis is shown above. This plot can tell you how users feel when they comment on something. In different years. According to this plot, we can trace back to the particular time to find out the topic that causes the violent emotional fluctuation. In the plot, the more precipitous the curve is and the higher the peak is, the serverer the emotion fluctuates."), 
