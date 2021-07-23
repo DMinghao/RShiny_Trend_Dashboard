@@ -1,6 +1,9 @@
 if (!require(shiny.router)) {
   install.packages("shiny.router")
 }
+if (!require(shinyalert)) {
+  install.packages("shinyalert")
+}
 
 if (!require(tidyverse)) {
   install.packages("tidyverse")

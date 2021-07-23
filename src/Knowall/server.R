@@ -1,5 +1,7 @@
 
 
+
+
 shinyServer(function(input, output, session) {
   router$server(input, output, session)
   
@@ -93,6 +95,19 @@ shinyServer(function(input, output, session) {
       # inner_join(get_sentiments("nrc"), by = "word") %>%
       inner_join(nrc, by = "word") %>%
       as_tibble()
+    
+    updateSelectizeInput(
+      session,
+      "commentSelect",
+      label = paste(
+        "Select a Comment ID (1~",
+        NROW(redditProcessed$sentimentData),
+        ")"
+      ),
+      choices = redditProcessed$sentimentData$uniqueID,
+      selected = 1,
+      server = TRUE
+    )
   }
   
   
@@ -305,342 +320,368 @@ shinyServer(function(input, output, session) {
         hjust = 'left',
         size = 4
       ) +
-      labs(title = 'Total Tweets per Hours '
-           ) +
-           xlab('Time of Day') +
-             ylab('Total Tweets') +
-             scale_fill_brewer(palette = 'Dark2') +
-             theme_bw()
-           p %>% ggplotly()
+      labs(title = 'Total Tweets per Hours ') +
+      xlab('Time of Day') +
+      ylab('Total Tweets') +
+      scale_fill_brewer(palette = 'Dark2') +
+      theme_bw()
+    p %>% ggplotly()
   })
+  
+  output$twitterWeekPost <- renderPlotly({
+    d <- global$TwitterData1
     
-    output$twitterWeekPost <- renderPlotly({
-      d <- global$TwitterData1
-      
-      d$created = ymd_hms(d$created, tz = 'Asia/Jakarta')
-      d$date = date(d$created)
-      d$week = week(d$created)
-      d$hour = hour(d$created)
-      d$month = month(d$created)
-      
-      d.day.week1 = data.frame(table(d$date))
-      colnames(d.day.week1)[1] <- "Days"
-      colnames(d.day.week1)[2] <- "Total.Tweets"
-      # d.week.month1 = data.frame(table(d$week))
-      # colnames(d.week.month1)[1] <- "Weeks"
-      # colnames(d.week.month1)[2] <- "Total.Tweets"
-      # d.hour.date1 = data.frame(table(d$hour))
-      # colnames(d.hour.date1) = c('Hour', 'Total.Tweets')
-      
-      t <- ggplot(d.day.week1) +
-        geom_bar(
-          aes(
-            x = Days,
-            y = Total.Tweets,
-            fill = I('blue')
-          ),
-          stat = 'identity',
-          alpha = 0.75,
-          show.legend = FALSE
-        ) +
-        geom_hline(
-          yintercept = mean(d.day.week1$Total.Tweets),
-          col = I('black'),
-          size = 1
-        ) +
-        geom_text(
-          aes(
-            fontface = 'italic',
-            label = paste('Average:',
-                          ceiling(mean(
-                            d.day.week1$Total.Tweets
-                          )),
-                          'Tweets per Day'),
-            x = 8,
-            y = mean(d.day.week1$Total.Tweets) + 20
-          ),
-          hjust = 'left',
-          size = 4
-        ) +
-        labs(title = 'Total Tweets per Days ') +
-             xlab('Day of Week') +
-               ylab('Total Tweets') +
-               scale_fill_brewer(palette = 'Dark2') +
-               theme_bw()
-             t %>% ggplotly()
+    d$created = ymd_hms(d$created, tz = 'Asia/Jakarta')
+    d$date = date(d$created)
+    d$week = week(d$created)
+    d$hour = hour(d$created)
+    d$month = month(d$created)
+    
+    d.day.week1 = data.frame(table(d$date))
+    colnames(d.day.week1)[1] <- "Days"
+    colnames(d.day.week1)[2] <- "Total.Tweets"
+    # d.week.month1 = data.frame(table(d$week))
+    # colnames(d.week.month1)[1] <- "Weeks"
+    # colnames(d.week.month1)[2] <- "Total.Tweets"
+    # d.hour.date1 = data.frame(table(d$hour))
+    # colnames(d.hour.date1) = c('Hour', 'Total.Tweets')
+    
+    t <- ggplot(d.day.week1) +
+      geom_bar(
+        aes(
+          x = Days,
+          y = Total.Tweets,
+          fill = I('blue')
+        ),
+        stat = 'identity',
+        alpha = 0.75,
+        show.legend = FALSE
+      ) +
+      geom_hline(
+        yintercept = mean(d.day.week1$Total.Tweets),
+        col = I('black'),
+        size = 1
+      ) +
+      geom_text(
+        aes(
+          fontface = 'italic',
+          label = paste('Average:',
+                        ceiling(mean(
+                          d.day.week1$Total.Tweets
+                        )),
+                        'Tweets per Day'),
+          x = 8,
+          y = mean(d.day.week1$Total.Tweets) + 20
+        ),
+        hjust = 'left',
+        size = 4
+      ) +
+      labs(title = 'Total Tweets per Days ') +
+      xlab('Day of Week') +
+      ylab('Total Tweets') +
+      scale_fill_brewer(palette = 'Dark2') +
+      theme_bw()
+    t %>% ggplotly()
+  })
+  
+  output$twitterSentiment <- renderPlot({
+    data <- global$TwitterData1
+    
+    data("stop_words")
+    tidy_tweets <- tibble(
+      screen_name = data$screenName,
+      tweetid = data$id,
+      created_timestamp = data$created,
+      is_retweet = data$isRetweet,
+      text = data$text
+    ) %>%
+      mutate(created_date = as.Date(created_timestamp)) %>%
+      filter(is_retweet == FALSE,
+             substr(text, 1, 2) != "RT")
+    
+    tweet_words <- tidy_tweets %>%
+      select(tweetid,
+             screen_name,
+             text,
+             created_date) %>%
+      unnest_tokens(word, text)
+    
+    my_stop_words <- tibble(
+      word = c("https",
+               "t.co",
+               "rt",
+               "amp",
+               "rstats",
+               "gt"),
+      lexicon = "twitter"
+    )
+    all_stop_words <- stop_words %>%
+      bind_rows(my_stop_words)
+    
+    suppressWarnings({
+      no_numbers <- tweet_words %>%
+        filter(is.na(as.numeric(word)))
     })
-      
-      output$twitterSentiment <- renderPlot({
-        data <- global$TwitterData1
-        
-        data("stop_words")
-        tidy_tweets <- tibble(
-          screen_name = data$screenName,
-          tweetid = data$id,
-          created_timestamp = data$created,
-          is_retweet = data$isRetweet,
-          text = data$text
-        ) %>%
-          mutate(created_date = as.Date(created_timestamp)) %>%
-          filter(is_retweet == FALSE,
-                 substr(text, 1, 2) != "RT")
-        
-        tweet_words <- tidy_tweets %>%
-          select(tweetid,
-                 screen_name,
-                 text,
-                 created_date) %>%
-          unnest_tokens(word, text)
-        
-        my_stop_words <- tibble(
-          word = c("https",
-                   "t.co",
-                   "rt",
-                   "amp",
-                   "rstats",
-                   "gt"),
-          lexicon = "twitter"
-        )
-        all_stop_words <- stop_words %>%
-          bind_rows(my_stop_words)
-        
-        suppressWarnings({
-          no_numbers <- tweet_words %>%
-            filter(is.na(as.numeric(word)))
-        })
-        
-        no_stop_words <- no_numbers %>%
-          anti_join(all_stop_words, by = "word")
-        
-        nrc_words <- no_stop_words %>%
-          inner_join(lexicon_nrc(dir = "./dataCache", manual_download = TRUE), by = "word")
-        
-        ggplot(nrc_words) +
-          geom_joy(
-            aes(x = created_date,
-                y = sentiment,
-                fill = sentiment),
-            rel_min_height = 0.01,
-            alpha = 0.7,
-            scale = 3
-          ) +
-          theme_joy() +
-          labs(title = "Twitter sentiment analysis",
-               x = "Tweet Date",
-               y = "Sentiment") +
-          scale_fill_discrete(guide = FALSE)
-        
-      })
-      
-      output$twitterDT <- renderDataTable({
-        global$TwitterData1
-      })
-      
-  ### reddit
-      
-      # output$reddit3d1 <- renderPlotly({
-      #   # plots$reddit3d1
-      #   # get(global$RedditData1)
-      #   copyData <- global$RedditData1
-      #   # glimpse(copyData)
-      #   fig <- copyData %>%
-      #     # filter(controversiality > 0) %>%
-      #     plot_ly(
-      #       x = ~ post_score,
-      #       y = ~ num_comments,
-      #       z = ~ comment_score,
-      #       color = ~ upvote_prop,
-      #       hovertemplate = ~ paste(
-      #         "<br>post_score: ",
-      #         post_score,
-      #         "<br>num_comments: ",
-      #         num_comments,
-      #         "<br>comment_score: ",
-      #         comment_score,
-      #         "<br>upvote_prop: ",
-      #         upvote_prop,
-      #         "<br>controversiality: ",
-      #         controversiality,
-      #         "<br>---Comment---<br>",
-      #         comment,
-      #         '<extra></extra>'
-      #       )
-      #     ) %>% add_markers() 
-      #   # %>%
-      #     # layout(scene = list(
-      #     #   camera = list(eye = list(
-      #     #     x = 3, y = 0.88, z = 0.64
-      #     #   )),
-      #     #   aspectratio = list(x = 1, y = 1, z = 1.75)
-      #     # ))
-      #   fig
-      # })
-      
-      output$reddit3D2 <- renderPlotly({
-        copyData <- global$RedditData1
-        redditProcessed$cleanStemmedText %>%
-          group_by(uniqueID) %>%
-          count(word) %>%
-          ungroup() -> countTbl
-        
-        tfidfTbl <- countTbl %>%
-          bind_tf_idf(word, document = uniqueID , n)
-        
-        tfidfTbl <- tfidfTbl %>%
-          merge(copyData %>% select(c(uniqueID, upvote_prop)), all = TRUE) %>%
-          as_tibble()
-        
-        tfidfFig <- tfidfTbl %>%
-          filter(n > 2) %>%
-          plot_ly(
-            x = ~ tf,
-            y = ~ idf,
-            z = ~ tf_idf,
-            color = ~ upvote_prop,
-            hovertemplate = ~ paste(
-              "<br>uniqueID: ",
-              uniqueID,
-              "<br>tf: ",
-              tf,
-              "<br>idf: ",
-              idf,
-              "<br>tf_idf: ",
-              tf_idf,
-              "<br>n: ",
-              n,
-              "<br>upvote_prop: ",
-              upvote_prop,
-              "<br>word: ",
-              word,
-              '<extra></extra>'
-            )
-          ) %>%
-          add_markers() %>%
-          layout(scene = list(camera = list(eye = list(
-            x = -2, y = 0.88, z = 1
-          ))))
-        tfidfFig
-      })
-      
-      output$redditSentimentJoy <- renderPlot({
-        p <- redditProcessed$sentimentData %>%
-          ggplot() +
-          geom_joy(
-            aes(x = comm_date, y = sentiment, fill = sentiment),
-            rel_min_height = 0.01,
-            alpha = 0.7,
-            scale = 3
-          ) +
-          theme_joy() +
-          scale_fill_discrete(guide = FALSE)
-        
-        p
-      })
-      
-      # output$redditSentimentViolin <- renderPlotly({
-      #   # req(global$RedditData1)
-      #   
-      #   violinP <- redditProcessed$sentimentData %>%
-      #     group_by(uniqueID, sentiment) %>%
-      #     tally() %>%
-      #     ungroup() %>%
-      #     plot_ly(
-      #       y = ~ n,
-      #       x = ~ sentiment,
-      #       split = ~ sentiment,
-      #       type = 'violin',
-      #       box = list(visible = T),
-      #       meanline = list(visible = T)
-      #     )
-      #   violinP
-      # })
-      
-      output$redditSentimentRadar <- renderPlotly({
-        copyData <- global$RedditData1
-        
-        averageSentiment <- redditProcessed$sentimentData %>%
-          group_by(sentiment) %>%
-          tally() %>%
-          mutate(n = n / nrow(copyData))
-        
-        allSent <-
-          redditProcessed$sentimentData %>% distinct(sentiment)
-        
-        id <- 1000
-        
-        redditProcessed$sentimentData %>%
-          group_by(uniqueID, sentiment) %>%
-          tally() %>%
-          filter(uniqueID == id) %>%
-          right_join(allSent) %>%
-          mutate(uniqueID = id) %>%
-          mutate(n = coalesce(n, 0)) -> radarData
-        
-        radarData %>%
-          plot_ly(type = 'scatterpolar',
-                  mode = 'markers',
-                  fill = 'toself') %>%
-          add_trace(
-            theta = ~ sentiment,
-            r = ~ averageSentiment$n,
-            name = 'Average Sentiment',
-            hovertemplate = ~ paste(
-              "Sentiment: ",
-              sentiment,
-              "<br>n: ",
-              averageSentiment$n,
-              '<extra></extra>'
-            )
-          ) %>%
-          add_trace(
-            theta = ~ sentiment,
-            r = ~ n,
-            name = ~ paste("Comment ID: ", uniqueID),
-            hovertemplate = ~ paste("Sentiment: ", sentiment, "<br>n: ", n, '<extra></extra>')
-          ) %>%
-          layout(polar = list(radialaxis = list(visible = T)))
-      })
-      
-      output$redditWordCloud <- renderWordcloud2({
-        excludeWords <- c("just", "get")
-        Encoding(redditProcessed$textData$allText) <- "UTF-8"
-         redditProcessed$textData$allText <- iconv( x = redditProcessed$textData$allText
-                                                      , from = "UTF-8"
-                                                      , to = "UTF-8"
-                                                      , sub = "" )
-        v <- redditProcessed$textData$allText %>%
-          VectorSource %>%
-          Corpus %>%
-          tm_map(content_transformer(tolower)) %>%
-          # Remove numbers
-          tm_map(removeNumbers) %>%
-          # Remove english common stopwords
-          tm_map(removeWords, stopwords("english")) %>%
-          # Remove your own stop word
-          # specify your stopwords as a character vector
-          tm_map(removeWords, excludeWords) %>%
-          # Remove punctuations
-          tm_map(removePunctuation) %>%
-          # Eliminate extra white spaces
-          tm_map(stripWhitespace) %>%
-          # Text stemming
-          tm_map(stemDocument) %>%
-          TermDocumentMatrix %>%
-          as.matrix %>%
-          rowSums  %>%
-          sort(decreasing = TRUE)
-        d <- data.frame(word = names(v),
-                        freq = v,
-                        stringsAsFactors = FALSE)
-        # glimpse(d)
-        
-        d %>%
-          wordcloud2()
-        
-      })
-      
-      output$redditDT <- renderDataTable({
-        global$RedditData1 %>% select(-c(post_text))
-      })
-})
     
+    no_stop_words <- no_numbers %>%
+      anti_join(all_stop_words, by = "word")
+    
+    nrc_words <- no_stop_words %>%
+      inner_join(lexicon_nrc(dir = "./dataCache", manual_download = TRUE),
+                 by = "word")
+    
+    ggplot(nrc_words) +
+      geom_joy(
+        aes(x = created_date,
+            y = sentiment,
+            fill = sentiment),
+        rel_min_height = 0.01,
+        alpha = 0.7,
+        scale = 3
+      ) +
+      theme_joy() +
+      labs(title = "Twitter sentiment analysis",
+           x = "Tweet Date",
+           y = "Sentiment") +
+      scale_fill_discrete(guide = FALSE)
+    
+  })
+  
+  output$twitterDT <- renderDataTable({
+    global$TwitterData1
+  })
+  
+  ### reddit
+  
+  # observeEvent(input$dashTabs, {
+  #   if (input$dashTabs == "Reddit") {
+  #     shinyalert(
+  #       title = "FYI",
+  #       text = "Please be patient, it takes a little longer to generate plot for Reddit data",
+  #       size = "m",
+  #       closeOnEsc = TRUE,
+  #       closeOnClickOutside = TRUE,
+  #       html = FALSE,
+  #       type = "info",
+  #       showConfirmButton = TRUE,
+  #       showCancelButton = FALSE,
+  #       confirmButtonText = "OK",
+  #       confirmButtonCol = "#AEDEF4",
+  #       timer = 10000,
+  #       imageUrl = "",
+  #       animation = TRUE
+  #     )
+  #   }
+  # })
+  
+  # output$reddit3d1 <- renderPlotly({
+  #   # plots$reddit3d1
+  #   # get(global$RedditData1)
+  #   copyData <- global$RedditData1
+  #   # glimpse(copyData)
+  #   fig <- copyData %>%
+  #     # filter(controversiality > 0) %>%
+  #     plot_ly(
+  #       x = ~ post_score,
+  #       y = ~ num_comments,
+  #       z = ~ comment_score,
+  #       color = ~ upvote_prop,
+  #       hovertemplate = ~ paste(
+  #         "<br>post_score: ",
+  #         post_score,
+  #         "<br>num_comments: ",
+  #         num_comments,
+  #         "<br>comment_score: ",
+  #         comment_score,
+  #         "<br>upvote_prop: ",
+  #         upvote_prop,
+  #         "<br>controversiality: ",
+  #         controversiality,
+  #         "<br>---Comment---<br>",
+  #         comment,
+  #         '<extra></extra>'
+  #       )
+  #     ) %>% add_markers()
+  #   # %>%
+  #     # layout(scene = list(
+  #     #   camera = list(eye = list(
+  #     #     x = 3, y = 0.88, z = 0.64
+  #     #   )),
+  #     #   aspectratio = list(x = 1, y = 1, z = 1.75)
+  #     # ))
+  #   fig
+  # })
+  
+  output$reddit3D2 <- renderPlotly({
+    copyData <- global$RedditData1
+    redditProcessed$cleanStemmedText %>%
+      group_by(uniqueID) %>%
+      count(word) %>%
+      ungroup() -> countTbl
+    
+    tfidfTbl <- countTbl %>%
+      bind_tf_idf(word, document = uniqueID , n)
+    
+    tfidfTbl <- tfidfTbl %>%
+      merge(copyData %>% select(c(uniqueID, upvote_prop)), all = TRUE) %>%
+      as_tibble()
+    
+    tfidfFig <- tfidfTbl %>%
+      filter(n > 2) %>%
+      plot_ly(
+        x = ~ tf,
+        y = ~ idf,
+        z = ~ tf_idf,
+        color = ~ upvote_prop,
+        hovertemplate = ~ paste(
+          "<br>uniqueID: ",
+          uniqueID,
+          "<br>tf: ",
+          tf,
+          "<br>idf: ",
+          idf,
+          "<br>tf_idf: ",
+          tf_idf,
+          "<br>n: ",
+          n,
+          "<br>upvote_prop: ",
+          upvote_prop,
+          "<br>word: ",
+          word,
+          '<extra></extra>'
+        )
+      ) %>%
+      add_markers() %>%
+      layout(scene = list(camera = list(eye = list(
+        x = -2, y = 0.88, z = 1
+      ))))
+    tfidfFig
+  })
+  
+  output$redditSentimentJoy <- renderPlot({
+    p <- redditProcessed$sentimentData %>%
+      ggplot() +
+      geom_joy(
+        aes(x = comm_date, y = sentiment, fill = sentiment),
+        rel_min_height = 0.01,
+        alpha = 0.7,
+        scale = 3
+      ) +
+      theme_joy() +
+      scale_fill_discrete(guide = FALSE)
+    
+    p
+  })
+  
+  # output$redditSentimentViolin <- renderPlotly({
+  #   # req(global$RedditData1)
+  #
+  #   violinP <- redditProcessed$sentimentData %>%
+  #     group_by(uniqueID, sentiment) %>%
+  #     tally() %>%
+  #     ungroup() %>%
+  #     plot_ly(
+  #       y = ~ n,
+  #       x = ~ sentiment,
+  #       split = ~ sentiment,
+  #       type = 'violin',
+  #       box = list(visible = T),
+  #       meanline = list(visible = T)
+  #     )
+  #   violinP
+  # })
+  
+  output$redditSentimentRadar <- renderPlotly({
+    copyData <- global$RedditData1
+    
+    averageSentiment <- redditProcessed$sentimentData %>%
+      group_by(sentiment) %>%
+      tally() %>%
+      mutate(n = n / nrow(copyData))
+    
+    allSent <-
+      redditProcessed$sentimentData %>% distinct(sentiment)
+    
+    id <- input$commentSelect
+    
+    redditProcessed$sentimentData %>%
+      group_by(uniqueID, sentiment) %>%
+      tally() %>%
+      filter(uniqueID == id) %>%
+      right_join(allSent) %>%
+      mutate(uniqueID = id) %>%
+      mutate(n = coalesce(n, 0)) -> radarData
+    
+    radarData %>%
+      plot_ly(type = 'scatterpolar',
+              mode = 'markers',
+              fill = 'toself') %>%
+      add_trace(
+        theta = ~ sentiment,
+        r = ~ averageSentiment$n,
+        name = 'Average Sentiment',
+        hovertemplate = ~ paste(
+          "Sentiment: ",
+          sentiment,
+          "<br>n: ",
+          averageSentiment$n,
+          '<extra></extra>'
+        )
+      ) %>%
+      add_trace(
+        theta = ~ sentiment,
+        r = ~ n,
+        name = ~ paste("Comment ID: ", uniqueID),
+        hovertemplate = ~ paste("Sentiment: ", sentiment, "<br>n: ", n, '<extra></extra>')
+      ) %>%
+      layout(polar = list(radialaxis = list(visible = T)))
+  })
+  
+  output$redditWordCloud <- renderWordcloud2({
+    excludeWords <- c("just", "get")
+    Encoding(redditProcessed$textData$allText) <- "UTF-8"
+    redditProcessed$textData$allText <-
+      iconv(
+        x = redditProcessed$textData$allText
+        ,
+        from = "UTF-8"
+        ,
+        to = "UTF-8"
+        ,
+        sub = ""
+      )
+    v <- redditProcessed$textData$allText %>%
+      VectorSource %>%
+      Corpus %>%
+      tm_map(content_transformer(tolower)) %>%
+      # Remove numbers
+      tm_map(removeNumbers) %>%
+      # Remove english common stopwords
+      tm_map(removeWords, stopwords("english")) %>%
+      # Remove your own stop word
+      # specify your stopwords as a character vector
+      tm_map(removeWords, excludeWords) %>%
+      # Remove punctuations
+      tm_map(removePunctuation) %>%
+      # Eliminate extra white spaces
+      tm_map(stripWhitespace) %>%
+      # Text stemming
+      tm_map(stemDocument) %>%
+      TermDocumentMatrix %>%
+      as.matrix %>%
+      rowSums  %>%
+      sort(decreasing = TRUE)
+    d <- data.frame(word = names(v),
+                    freq = v,
+                    stringsAsFactors = FALSE)
+    # glimpse(d)
+    
+    d %>%
+      wordcloud2()
+    
+  })
+  
+  output$redditDT <- renderDataTable({
+    global$RedditData1 %>% select(-c(post_text))
+  })
+})

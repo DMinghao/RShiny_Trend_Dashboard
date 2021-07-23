@@ -5,9 +5,9 @@ account: dminghao
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4403606
-bundleId: 4838075
+bundleId: 4847780
 url: https://dminghao.shinyapps.io/Knowall/
-when: 1626792575.3119
-lastSyncTime: 1626792575.3119
+when: 1627011420.66505
+lastSyncTime: 1627011420.66505
 asMultiple: FALSE
 asStatic: FALSE

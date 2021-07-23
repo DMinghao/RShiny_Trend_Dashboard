@@ -20,13 +20,7 @@ about_page <- div(class = "container",
                                     tags$a(class = "nav-link active",
                                            "aria-current" = "true",
                                            href = "#",
-                                           "Contributor")),
-                            tags$li(class = "nav-item",
-                                    tags$a(class = "nav-link ",
-                                           href = "#",
-                                           tabindex = "-1",
-                                           # "aria-disabled" = "true",
-                                           "Github")))),
+                                           "Contributor")))),
            tags$div(class = "card-body",
                     tags$p(class = "card-text",
                            "Han Liu -- Master of Information System Management",
@@ -48,13 +42,7 @@ about_page <- div(class = "container",
                            "Yanlin Li -- Master of Information System Management",
                            a(href = "l3pphadct@gmail.com","l3pphadct@gmail.com")
                     )
-                   ),
-           tags$div(class = "card-body",
-                    tags$p(class = "card-text",
-                           "Github",
-                           a(href = "https://github.com/DMinghao/RShiny_Trend_Dashboard"))
-                   # tag$iframe(src="https://github.com/DMinghao/RShiny_Trend_Dashboard")
-           )
+                   )
            
            ),
   
@@ -90,7 +78,15 @@ about_page <- div(class = "container",
                            "This project data visualization contains reference for posts and comments in online discussion forums on Reddit, such as Author of the Reddit post, Reddit screen name, 
                            Date of posting, Content of the caption and URL.",
                            br(),
-                           a(href = "https://www.reddit.com/r/raddit/","https://www.reddit.com/r/raddit/")))
+                           a(href = "https://www.reddit.com/r/raddit/","https://www.reddit.com/r/raddit/"))), 
+           br(), 
+           tags$div(class = "card-body",
+                    tags$h5(class = "card-title",
+                            "Other"),
+                    tags$p(class = "card-text",
+                           a(href = "https://juejin.cn/post/6884810352547397645","https://juejin.cn/post/6884810352547397645"), 
+                           br(), 
+                           a(href = "https://en.wikipedia.org/wiki/Tf%E2%80%93idf","https://en.wikipedia.org/wiki/Tf%E2%80%93idf")))
   ),
            )
           
